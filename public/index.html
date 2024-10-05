@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records App</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        button {
+            padding: 5px 10px;
+            margin-top: 10px;
+        }
+        .form-container {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            padding: 5px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Student Records</h1>
+
+        <!-- Add Student Form -->
+        <div class="form-container">
+            <h2>Add New Student</h2>
+            <form id="studentForm">
+                <input type="text" id="studentId" placeholder="Student ID" required><br><br>
+                <input type="text" id="studentName" placeholder="Student Name" required><br><br>
+                <input type="text" id="studentAge" placeholder="Student Age" required><br><br>
+                <input type="text" id="studentMajor" placeholder="Student Major" required><br><br>
+                <button type="submit">Add Student</button>
+            </form>
+        </div>
+
+        <!-- Student Records Table -->
+        <h2>Student Records</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Age</th>
+                    <th>Major</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="studentTableBody">
+               
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Fetch all student records on page load
+        function fetchStudents() {
+            fetch('/students')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('studentTableBody');
+                    tableBody.innerHTML = ''; 
+                    data.forEach(student => {
+                        const row = `
+                            <tr>
+                                <td>${student.id}</td>
+                                <td>${student.name}</td>
+                                <td>${student.age}</td>
+                                <td>${student.major}</td>
+                                <td>
+                                    <button onclick="deleteStudent(${student.id})">Delete</button>
+                                </td>
+                            </tr>
+                        `;
+                        tableBody.innerHTML += row;
+                    });
+                });
+        }
+
+        // Add new students to the table
+        const studentForm = document.getElementById('studentForm');
+        studentForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const newStudent = {
+                id: parseInt(document.getElementById('studentId').value),
+                name: document.getElementById('studentName').value,
+                age: parseInt(document.getElementById('studentAge').value),
+                major: document.getElementById('studentMajor').value
+            };
+
+            fetch('/students', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newStudent)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchStudents(); 
+                studentForm.reset(); 
+            });
+        });
+
+        // Delete student recods
+        function deleteStudent(id) {
+            fetch(`/students/${id}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchStudents(); 
+                });
+        }
+
+        fetchStudents();
+    </script>
+</body>
+</html>
